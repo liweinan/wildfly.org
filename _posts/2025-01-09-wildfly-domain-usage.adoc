@@ -44,9 +44,9 @@ legacy security layer:
 ____
 A key focus in WildFly 25 has been completing our migration away from
 the legacy security layer that dates back to JBoss AS and onto
-the ~https://wildfly-security.github.io/wildfly-elytron/[WildFly
-Elytron]~-based ~https://docs.wildfly.org/24/WildFly_Elytron_Security.html[security
-layer]~ introduced in WildFly 11. SE 17 does not provide packages that
+the ~https://wildfly-security.github.io/wildfly-elytron/[WildFly
+Elytron]~-based ~https://docs.wildfly.org/24/WildFly_Elytron_Security.html[security
+layer]~ introduced in WildFly 11. SE 17 does not provide packages that
 legacy security heavily relies upon, so the time has come to complete
 the transition off of legacy security.
 ____
@@ -68,7 +68,7 @@ final version when I’m writing this blog post. Here is the release page:
 We can download the zip file of the release and extract it locally to
 use it. Here is my local environment setup:
 
-image:Deployment%20Diagram4.png[image]
+image:2025-01-wildfly-domain/01.png[image]
 
 As the deployment diagram shown above, I used two machines to run the
 WildFly server in domain mode. In the above setup, the WildFly server
@@ -227,7 +227,7 @@ server of Machine B is deprecated:
 [source,xml]
 ----
 <server-identities>
-  <secret value="..." />
+  <secret value="..." />
 </server-identities>
 ----
 
@@ -383,13 +383,13 @@ which we have assigned to the `jboss.bind.address.management` property
 during the server startup process. Here is the screenshot of the admin
 page of the WildFly server:
 
-image:image.png[image]
+image:2025-01-wildfly-domain/02.png[image]
 
 We need to enter the `admin` as user name and `123` as password, which
 is the user we added as the management user in above. And then we can
 enter the admin page of the server:
 
-image:image%202.png[image]
+image:2025-01-wildfly-domain/03.png[image]
 
 As we have entered the WildFly admin page, we can try to upload an
 example project to the domain servers. There is a `helloworld` project
@@ -428,7 +428,7 @@ WildFly server group. So I go back to the WildFly admin page, and then I
 can click the `Deployments` on the top menu and click the
 `Upload Deployment`:
 
-image:image%204.png[image]
+image:2025-01-wildfly-domain/04.png[image]
 
 From the above screenshot, you can see that I tried to deploy the sample
 project into the `other-server-group`. I use this server group because I
@@ -436,7 +436,7 @@ have configured servers on both `primary` and `secondary` hosts into
 this server group. Here is the deployment diagram about the server
 group:
 
-image:Deployment%20Diagram2.png[image]
+image:2025-01-wildfly-domain/05.png[image]
 
 As the diagram shown above, I will use the domain controller’s admin
 page to deploy `helloworld.war` into the `other-server-group`, so the
@@ -445,30 +445,30 @@ they both belong to `other-server-group`. Coming back to the WildFly
 admin page, I drag and drop the `helloworld.war` into the deployment
 page:
 
-image:image%205.png[image]
+image:2025-01-wildfly-domain/06.png[image]
 
 Then I clicked `Next` and leave the deployment configuration fields as
 default:
 
-image:image%206.png[image]
+image:2025-01-wildfly-domain/07.png[image]
 
 Then I clicked `Finished` and reached the `Deployment successful` page:
 
-image:image%207.png[image]
+image:2025-01-wildfly-domain/08.png[image]
 
 Now the `helloworld.war` is deployed to all the `servers` in the
 `other-server-group`. Now I click the `Deployments` on the top menu of
 the admin page, and then click the `other-server-group`, we can see that
 the `helloworld.war` is deployed into the server group:
 
-image:image%208.png[image]
+image:2025-01-wildfly-domain/09.png[image]
 
 As the `helloworld` project is deployed, we can check the statuses of
 the two hosts. I clicked the `Runtime` on top of the menu of the admin
 page, and then click the `primary` host tab, then I can see
 `server-three` is not started yet:
 
-image:image%2010.png[image]
+image:2025-01-wildfly-domain/10.png[image]
 
 This is because the `auto-start` property is configured to `false` in
 the `host.xml` of the primary host:
@@ -483,16 +483,16 @@ the `host.xml` of the primary host:
 
 So I need to click the `Start` button of the `server-three`:
 
-image:image%2011.png[image]
+image:2025-01-wildfly-domain/11.png[image]
 
 After a while the `server-three` is started:
 
-image:image%2012.png[image]
+image:2025-01-wildfly-domain/12.png[image]
 
 Because we didn’t configure the `auto-start` to `false` on the
 `secondary` host, so it’s already started:
 
-image:image%203.png[image]
+image:2025-01-wildfly-domain/13.png[image]
 
 From the above screenshots, we can see that the url of `server-two` is
 `http://192.168.0.113:8230`, and the url of `server-three` is
