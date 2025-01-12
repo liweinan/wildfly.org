@@ -7,13 +7,13 @@ author: liweinan
 description: An introduction to use the domain mode of WildFly 34
 ---
 
-Recently I tried to play with the domain mode in the current release of WildFly, version 34 when I’m writing this blog post.
+I recently tried to play with the domain mode in the current release of WildFly, version 34, while writing this blog post.
 
-I won’t explain much on the concept of domain mode of WildFly. I have written a book in before explaining the domain mode usage of WildFly usage in before:
+I won’t explain much about the concept of WildFly's domain mode. I have written a book before explaining the domain mode usage of WildFly usage in before:
 
 * https://www.packtpub.com/en-us/product/jboss-eap6-high-availability-9781783282449?srsltid=AfmBOooUR6olUaY8qVHB6U70wb2oe_nAk8OloSeJAtkbn6AGgoQ7-OM9[JBoss EAP6 High Availability | Programming | eBook]
 
-And here is also relative document about the domain mode setup:
+Here is also a relative document about the domain mode setup:
 
 * https://docs.jboss.org/author/display/WFLY10/Clustering%20and%20Domain%20Setup%20Walkthrough.html[Clustering and Domain Setup Walkthrough - WildFly 10]
 
@@ -25,23 +25,17 @@ For the details, you can refer to the admin guide of WildFly:
 
 * https://docs.wildfly.org/17/Admin_Guide.html[WildFly Admin Guide]
 
-However, all the above resources are outdated in some details of the domain mode usage of WildFly, especially in the security configuration part related with Elytron. According to the blog post written by Brian:
+However, all the above resources are outdated in some details of the domain mode usage of WildFly, especially in the security configuration part related to Elytron. According to the blog post written by Brian:
 
 * https://www.wildfly.org/news/2021/10/05/WildFly25-Final-Released/[WildFly 25 is released!]
 
 The security layer of WildFly has changed to use Elytron to replace the legacy security layer:
 
 ____
-A key focus in WildFly 25 has been completing our migration away from
-the legacy security layer that dates back to JBoss AS and onto
-the ~https://wildfly-security.github.io/wildfly-elytron/[WildFly
-Elytron]~-based ~https://docs.wildfly.org/24/WildFly_Elytron_Security.html[security
-layer]~ introduced in WildFly 11. SE 17 does not provide packages that
-legacy security heavily relies upon, so the time has come to complete
-the transition off of legacy security.
+A key focus in WildFly 25 has been completing our migration away from the legacy security layer that dates back to JBoss AS and onto the https://wildfly-security.github.io/wildfly-elytron/[WildFly Elytron] based https://docs.wildfly.org/24/WildFly_Elytron_Security.html[security layer] introduced in WildFly 11. SE 17 does not provide packages that legacy security heavily relies upon, so the time has come to complete the transition off of legacy security.
 ____
 
-Though this change has happened for several years, it seems that the articles online I’ve found on the internet doesn’t cover this change much. So I’d like to briefly intruduce the current usage of domain mode in the current version of WildFly. I won’t cover all the detail usages of the domain mode in this blog post, but it will be a good start to follow the example introduced in this article for the further studies.
+Though this change has happened for several years, it seems that the articles online I’ve found on the internet doesn’t cover this change much. So I’d like to briefly introduce the current usage of domain mode in the current version of WildFly. I won’t cover all the detail usages of the domain mode in this blog post, but it will be a good start to follow the example introduced in this article for the further studies.
 
 The first step is to download the current version of WildFly. I will use version `34.0.1.Final` version in this blog post which is the newest final version when I’m writing this blog post. Here is the release page:
 
@@ -51,11 +45,11 @@ We can download the zip file of the release and extract it locally to use it. He
 
 image:2025-01-wildfly-domain/01.png[image]
 
-As the deployment diagram shown above, I used two machines to run the WildFly server in domain mode. In the above setup, the WildFly server run on Machine A is acted as domain controller, and the WildFly server on Machine B will be connected to Machine A accepting the management from domain server.
+As the deployment diagram shows above, I used two machines to run the WildFly server in domain mode. In the above setup, the WildFly server run on Machine A acts as a domain controller, and the WildFly server on Machine B will be connected to Machine A accepting the management from the domain server.
 
-Ther host name of WildFly server running on Machine A will be configured to `primary`(this will be defined in the `name` property in the `host.xml`), and the host name of WildFly server running on Machine B will be configured to `secondary`. In both the WildFly servers runinng on the two different machines, they will be configured to run the `server` (This is the `server` section configured in the `host.xml`) in the same server group called `other-server-group`. The `primary` host will define a `server-three` server, and the `secondary` host will define a `server-two` server, and the both belong to the `other-server-group`. In this way, the domain controller can management this server group, and deploy a sample project into the `servers` belong to the server group, though the `servers` are running on different hosts. I will explain the details step by step.
+The hostname of the WildFly server running on Machine A will be configured to `primary`(this will be defined in the `name` property in the `host.xml`), and the hostname of the WildFly server running on Machine B will be configured to `secondary`. In both the WildFly servers running on the two different machines, they will be configured to run the `server` (This is the `server` section configured in the `host.xml`) in the same server group called `other-server-group`. The `primary` host will define a `server-three` server, and the `secondary` host will define a `server-two` server, and both belong to the `other-server-group`. In this way, the domain controller can manage this server group, and deploy a sample project into the `servers` belonging to the server group, though the `servers` are running on different hosts. I will explain the details step by step.
 
-First I need to download and extract the WildFly 34 distribution into both machines so I can use them. In the extracted WildFly server directory, it has some the configurations files out-of-box. Here is the domain configurations provided:
+First I need to download and extract the WildFly 34 distribution into both machines so I can use them. The extracted WildFly server directory has some of the configuration files out-of-box. Here are the domain configurations provided:
 
 [source,bash]
 ----
@@ -67,16 +61,16 @@ domain.xml                              mgmt-groups.properties
 host-primary.xml                        mgmt-users.properties
 ----
 
-From the above command output, we can see in the `wildfly-34.0.1.Final/domain/configuration/` directory, it contains `host-primary.xml` and `host-secondary.xml` files. I will use `host-secondary.xml` with some modifications in Machine B. However, I’ll use the `host.xml` instead of `host-primary.xml` in Machine A, because in `host-primary.xml` it has removed all the `servers` configuration which only acts as a domain controller. However, I still need to run the server in Machine A for demonstration purpose.
+From the above command output, we can see in the `wildfly-34.0.1.Final/domain/configuration/` directory, it contains `host-primary.xml` and `host-secondary.xml` files. I will use `host-secondary.xml` with some modifications in Machine B. However, I’ll use the `host.xml` instead of `host-primary.xml` in Machine A, because `host-primary.xml` has removed all the `servers` configuration which only acts as a domain controller. However, I still need to run the server in Machine A for demonstration purposes.
 
-Firsly, let’s check the `host.xml` on Machine A to fit the requirement. In `host.xml`, the host name is set to `primary` by default:
+First, let’s check the `host.xml` on Machine A to fit the requirement. In `host.xml`, the hostname is set to `primary` by default:
 
 [source,xml]
 ----
 <host xmlns="urn:jboss:domain:community:20.0" name="primary">
 ----
 
-This is what I expect so I don’t need to change it. In the `host.xml`, it has two servers settings by default:
+This is what I expect, so I don’t need to change it. The `host.xml` has two servers settings by default:
 
 [source,xml]
 ----
@@ -91,7 +85,7 @@ This is what I expect so I don’t need to change it. In the `host.xml`, it has 
 </server>
 ----
 
-I’ll use only `server-three` in this blog post, so I comment out the `server-one` and the `server-two`definitions and only leave the `server-three` definition here. In addition, there are several interfaces properties defined in the `host.xml` file that we need to override during runtime. Here is the `interfaces` section in the `host.xml`:
+I’ll use only `server-three` in this blog post, so I comment out the `server-one` and the `server-two` definitions and only leave the `server-three` definition here. In addition, there are several interface properties defined in the `host.xml` file that we need to override during runtime. Here is the `interfaces` section in the `host.xml`:
 
 [source,xml]
 ----
@@ -151,7 +145,7 @@ And I can see the server is started and here is the server log output of the abo
 [Host Controller] 01:17:30,566 INFO  [org.jboss.as] (Controller Boot Thread) WFLYSRV0025: WildFly 34.0.1.Final (WildFly Core 26.0.1.Final) (Host Controller) started in 3195ms - Started 70 of 71 services (14 services are lazy, passive or on-demand) - Host Controller configuration files in use: domain.xml, host.xml - Minimum feature stability level: community
 ----
 
-From the above server log output, I can see the server bound address is `192.168.0.115` instead of the default `127.0.0.1`. Then I opened another terminal window and run the following command in the `bin` directory of the WildFly server:
+From the above server log output, I can see the server-bound address is `192.168.0.115` instead of the default `127.0.0.1`. Then I opened another terminal window and ran the following command in the `bin` directory of the WildFly server:
 
 ....
 $ ./add-user.sh -u admin -p 123
@@ -159,7 +153,7 @@ Added user 'admin' to file '/Volumes/data/works/wildfly-34.0.1.Final/standalone/
 Added user 'admin' to file '/Volumes/data/works/wildfly-34.0.1.Final/domain/configuration/mgmt-users.properties'
 ....
 
-From the above command output, we can see the `admin` user is added and its password is `123`. This added user will be used for the `secondary` server to connect to the `primary` server. Please note that we didn’t generate a secret vaule related with the generated `admin` user, which is already deprecated. So this kind of configuration on the `secondary` server of Machine B is deprecated:
+From the above command output, we can see the `admin` user is added and its password is `123`. This added user will be used for the `secondary` server to connect to the `primary` server. Please note that we didn’t generate a secret value related to the generated `admin` user, which is already deprecated. So this kind of configuration on the `secondary` server of Machine B is deprecated:
 
 [source,xml]
 ----
@@ -168,25 +162,23 @@ From the above command output, we can see the `admin` user is added and its pass
 </server-identities>
 ----
 
-As the `primary` server is started on Machine A, now we can check the WildFly server configuration on Machine B. As planned, the WildFly server is named `secondary`, and the server will be connected to the `primary` server on Machine A, which is acted as domain controller.
+As the `primary` server is started on Machine A, now we can check the WildFly server configuration on Machine B. As planned, the WildFly server is named `secondary`, and the server will be connected to the `primary` server on Machine A, which acts as the domain controller.
 
-In the `secondary` server on Machine B, it will use the `host-secondary.xml` as its server configuration. We need to do some modifications to this file. First I need to add the `name` property to the `host` section:
+In the `secondary` server on Machine B, it will use the `host-secondary.xml` as its server configuration. We need to make some modifications to this file. First I need to add the `name` property to the `host` section:
 
 [source,xml]
 ----
 <host xmlns="urn:jboss:domain:community:20.0" name="secondary">
 ----
 
-Giving the host a name can be help to analyze the server log output
-later. Then I need to add another configuration to the
-`domain-controller`:
+Giving the host a name can help to analyze the server log output later. Then I need to add another configuration to the `domain-controller`:
 
 [source,xml]
 ----
 <remote authentication-context="myCtx">
 ----
 
-As the configuration shown above, I added a `remote` configuration into the `domain-controller` section, and I defined the `authentication-context` to be used is `myCtx`. This configuration is different than the legacy authentication in before. So I need to define this `authentication-context` in the `elytron` subsystem. Here are the details:
+As the configuration is shown above, I added a `remote` configuration into the `domain-controller` section, and I defined the `authentication-context` to be used as `myCtx`. This configuration is different than the legacy authentication before. So I need to define this `authentication-context` in the `elytron` subsystem. Here are the details:
 
 [source,xml]
 ----
@@ -207,11 +199,11 @@ As the configuration shown above, I added a `remote` configuration into the `dom
 ...
 ----
 
-The above configuration shows how to configure the `elytron` subsystem to provide user `admin` and its password `123` for usage. The `authentication-configuration` section is added, and the authentication context `myCtx` is using this configuration. Please note this is only one way to provide username and password via the Elytron subsystem, and you can avoid to use `clear-text` to provide password. I won’t dig into more details on how to use Elytron in this blog post, but you can always refer to its document for learning its usage:
+The above configuration shows how to configure the `elytron` subsystem to provide user `admin` and its password `123` for usage. The `authentication-configuration` section is added, and the authentication context `myCtx` is using this configuration. Please note this is only one way to provide `username` and `password` via the Elytron subsystem, and you can avoid using `clear-text` to provide the password. I won’t dig into more details on how to use Elytron in this blog post, but you can always refer to its document to learn its usage:
 
 * https://docs.wildfly.org/34/WildFly_Elytron_Security.html[WildFly Elytron Security]
 
-After configuring the authentication part in the `host-secondary.xml` file on Machine B, the last thing is that I disabled the `server-one` and leave only `server-two` in the configuration:
+After configuring the authentication part in the `host-secondary.xml` file on Machine B, the last thing is that I disabled the `server-one` and left only `server-two` in the configuration:
 
 [source,xml]
 ----
@@ -223,14 +215,14 @@ After configuring the authentication part in the `host-secondary.xml` file on Ma
 </servers>
 ----
 
-Until now all the configurations are done, and then I can start the WildFly server on Machine B wiith the following command:
+Until now all the configurations are done, and then I can start the WildFly server on Machine B with the following command:
 
 [source,bash]
 ----
 ❯ ./domain.sh --host-config=host-secondary.xml -Djboss.bind.address.management=192.168.0.113 -Djboss.bind.address=192.168.0.113 -Djboss.domain.primary.address=192.168.0.115
 ----
 
-In the above comand, I assign the value `host-secondary.xml` to the `host-config` property, and I aassign values of `jboss.bind.address.management` and `jboss.bind.address` as `192.168.0.113`, which is the IP address of Machine B itself. And I assigned the value of `jboss.domain.primary.address` as `192.168.0.115`, which is the IP address of Machine A. On Machine A, there is WildFly server running as domain controller as described in above. Now we can see the server log output of the above command:
+In the above command, I assign the value `host-secondary.xml` to the `host-config` property, and I assign values of `jboss.bind.address.management` and `jboss.bind.address` as `192.168.0.113`, which is the IP address of Machine B itself. I assigned the value of `jboss.domain.primary.address` as `192.168.0.115`, which is the IP address of Machine A. On Machine A, there is a WildFly server running as a domain controller as described above. Now we can see the server log output of the above command:
 
 ....
 =========================================================================
@@ -283,18 +275,15 @@ Please note that I can’t use the IP address `127.0.0.1` here, because the Wild
 
 image:2025-01-wildfly-domain/02.png[image]
 
-We need to enter the `admin` as user name and `123` as password, which is the user we added as the management user in above. And then we can enter the admin page of the server:
+We need to enter `admin` as the username and `123` as the password, which is the user we added as the management user above. And then we can enter the admin page of the server:
 
 image:2025-01-wildfly-domain/03.png[image]
 
-As we have entered the WildFly admin page, we can try to upload an
-example project to the domain servers. There is a `helloworld` project
-in the WildFly Quickstart project:
+As we have entered the WildFly admin page, we can try to upload an example project to the domain servers. There is a `helloworld` project in the WildFly Quickstart project:
 
-* https://github.com/wildfly/quickstart/tree/main/helloworld[quickstart/helloworld
-at main · wildfly/quickstart]
+* https://github.com/wildfly/quickstart/tree/main/helloworld[quickstart/helloworld at main · wildfly/quickstart]
 
-The above project is a simple project that just contains a servlet that will response with text `<h1>Hello World!</h1>` to the request. So I cloned the WildFly Quickstart project into my local environment and then build the `helloworld` project to generate the `helloworld.war`:
+The above project is a simple project that just contains a servlet that will respond with the text `<h1>Hello World!</h1>` to the request. So I cloned the WildFly Quickstart project into my local environment and then built the `helloworld` project to generate the `helloworld.war`:
 
 [source,bash]
 ----
@@ -316,11 +305,11 @@ $ mvn install
 target/helloworld.war
 ----
 
-As the project is built, I can depoly the above WAR file into the WildFly server group. So I go back to the WildFly admin page, and then I can click the `Deployments` on the top menu and click the `Upload Deployment`:
+As the project is built, I can deploy the above WAR file into the WildFly server group. So I go back to the WildFly admin page, and then I can click the `Deployments` on the top menu and click the `Upload Deployment`:
 
 image:2025-01-wildfly-domain/04.png[image]
 
-From the above screenshot, you can see that I tried to deploy the sample project into the `other-server-group`. I use this server group because I have configured servers on both `primary` and `secondary` hosts into this server group. Here is the deployment diagram about the server group:
+From the above screenshot, you can see that I tried to deploy the sample project into the `other-server-group`. I use this server group because I have configured servers on both `primary` and `secondary` hosts into this server group. Here is the deployment diagram for the server group:
 
 image:2025-01-wildfly-domain/05.png[image]
 
@@ -328,7 +317,7 @@ As the diagram shown above, I will use the domain controller’s admin page to d
 
 image:2025-01-wildfly-domain/06.png[image]
 
-Then I clicked `Next` and leave the deployment configuration fields as default:
+Then I clicked `Next` and left the deployment configuration fields as default:
 
 image:2025-01-wildfly-domain/07.png[image]
 
@@ -340,7 +329,7 @@ Now the `helloworld.war` is deployed to all the `servers` in the `other-server-g
 
 image:2025-01-wildfly-domain/09.png[image]
 
-As the `helloworld` project is deployed, we can check the statuses of the two hosts. I clicked the `Runtime` on top of the menu of the admin page, and then click the `primary` host tab, then I can see `server-three` is not started yet:
+As the `helloworld` project is deployed, we can check the statuses of the two hosts. I clicked the `Runtime` on top of the menu of the admin page, and then clicked the `primary` host tab, then I saw that `server-three` has not started yet:
 
 image:2025-01-wildfly-domain/10.png[image]
 
@@ -367,7 +356,7 @@ Because we didn’t configure the `auto-start` to `false` on the
 
 image:2025-01-wildfly-domain/13.png[image]
 
-From the above screenshots, we can see that the url of `server-two` is `http://192.168.0.113:8230`, and the url of `server-three` is `http://192.168.0.115:8330`. Their ports are differents because of the `port-offset` property settings are diffenent. For `server-three`, the `port-offset` is configured like this:
+From the above screenshots, we can see that the URL of `server-two` is `http://192.168.0.113:8230`, and the URL of `server-three` is `http://192.168.0.115:8330`. Their ports are different because the `port-offset` property settings are different. For `server-three`, the `port-offset` is configured like this:
 
 [source,xml]
 ----
@@ -386,7 +375,7 @@ Because the `port-offset` is set to `250` for `server-three`, and the default HT
 </server>
 ----
 
-As the `port-offset` setting is `150`, so the calcuated HTTP port is `8080+150=8330`, which is expected. Now we can use the `curl` command to do the requests to both the `primary` host and the `secondary` host to see if the `helloworld` project is deployed two both of the hosts:
+As the `port-offset` setting is `150`, the calculated HTTP port is `8080+150=8330`, which is expected. Now we can use the `curl` command to do the requests to both the `primary` host and the `secondary` host to see if the `helloworld` project is deployed two both of the hosts:
 
 [source,bash]
 ----
@@ -406,9 +395,8 @@ As the `port-offset` setting is `150`, so the calcuated HTTP port is `8080+150=8
 
 From the above command output, we can see that the `helloworld` project is deployed two both hosts. Though they are running on two different machines, because these two hosts are in the same `other-server-group` and they are managed by the domain controller, so the project is deployed to both hosts.
 
-I wish this blog post can be helpful to update your knowledge base to see how to use the domain mode in the most current WildFly release. For convinience, I have put the `host.xml` of the `primary` host and the `host-secondary.xml` of the `secondary` host here for reference:
+I hope this blog post can be helpful to update your knowledge base to see how to use the domain mode in the most current WildFly release. For convenience, I have put the `host.xml` of the `primary` host and the `host-secondary.xml` of the `secondary` host here for reference:
 
-* https://gist.github.com/liweinan/6cca8f88203e5aa76d3c1516d1758421[WildFly
-Domain Mode Configuration Files]
+* https://gist.github.com/liweinan/6cca8f88203e5aa76d3c1516d1758421[WildFly Domain Mode Configuration Files]
 
 === References
