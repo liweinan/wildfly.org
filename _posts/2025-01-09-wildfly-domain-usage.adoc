@@ -9,33 +9,14 @@ description: An introduction to use the domain mode of WildFly 34
 
 I recently tried to play with the domain mode in the current release of WildFly, version 34, while writing this blog post.
 
-I won’t explain much about the concept of WildFly's domain mode. I have written a book before explaining the domain mode usage of WildFly usage in before:
-
-* https://www.packtpub.com/en-us/product/jboss-eap6-high-availability-9781783282449?srsltid=AfmBOooUR6olUaY8qVHB6U70wb2oe_nAk8OloSeJAtkbn6AGgoQ7-OM9[JBoss EAP6 High Availability | Programming | eBook]
-
-Here is also a relative document about the domain mode setup:
-
-* https://docs.jboss.org/author/display/WFLY10/Clustering%20and%20Domain%20Setup%20Walkthrough.html[Clustering and Domain Setup Walkthrough - WildFly 10]
-
-There is also an article explaining the domain mode usage:
-
-* https://www.mastertheboss.com/jbossas/jboss-as-7/jboss-as-7-domain-configuration/[How to configure WildFly in Domain mode]
-
-For the details, you can refer to the admin guide of WildFly:
-
-* https://docs.wildfly.org/17/Admin_Guide.html[WildFly Admin Guide]
-
-However, all the above resources are outdated in some details of the domain mode usage of WildFly, especially in the security configuration part related to Elytron. According to the blog post written by Brian:
-
-* https://www.wildfly.org/news/2021/10/05/WildFly25-Final-Released/[WildFly 25 is released!]
-
-The security layer of WildFly has changed to use Elytron to replace the legacy security layer:
+I won’t explain much about the concept of WildFly’s domain mode. I have written a book before explaining the domain mode usage of WildFly usage in beforefootnote:[https://www.packtpub.com/en-us/product/jboss-eap6-high-availability-9781783282449?srsltid=AfmBOooUR6olUaY8qVHB6U70wb2oe_nAk8OloSeJAtkbn6AGgoQ7-OM9[JBoss EAP6 High Availability | Programming | eBook]]. There is also relative document about the domain mode setupfootnote:[https://docs.wildfly.org/35/High_Availability_Guide.html[High Availability Guide]]. Nevertheless, the resources I could found are mostly outdated or doesn’t contain the step-by-step walkthrough about the minimal configuration to be done for using the domain mode of WildFly. Especially in the security configuration part related to Elytron, according to the blog post written by Brianfootnote:[https://www.wildfly.org/news/2021/10/05/WildFly25-Final-Released/[WildFly
+25 is released!]]:
 
 ____
 A key focus in WildFly 25 has been completing our migration away from the legacy security layer that dates back to JBoss AS and onto the https://wildfly-security.github.io/wildfly-elytron/[WildFly Elytron] based https://docs.wildfly.org/24/WildFly_Elytron_Security.html[security layer] introduced in WildFly 11. SE 17 does not provide packages that legacy security heavily relies upon, so the time has come to complete the transition off of legacy security.
 ____
 
-Though this change has happened for several years, it seems that the articles online I’ve found on the internet doesn’t cover this change much. So I’d like to briefly introduce the current usage of domain mode in the current version of WildFly. I won’t cover all the detail usages of the domain mode in this blog post, but it will be a good start to follow the example introduced in this article for the further studies.
+So I’d like to briefly introduce the current usage of domain mode in the current version of WildFly. I won’t cover all the detail usages of the domain mode in this blog post, but it will be a good start to follow the example introduced in this article for the further studies.
 
 The first step is to download the current version of WildFly. I will use version `34.0.1.Final` version in this blog post which is the newest final version when I’m writing this blog post. Here is the release page:
 
@@ -395,8 +376,6 @@ As the `port-offset` setting is `150`, the calculated HTTP port is `8080+150=833
 
 From the above command output, we can see that the `helloworld` project is deployed two both hosts. Though they are running on two different machines, because these two hosts are in the same `other-server-group` and they are managed by the domain controller, so the project is deployed to both hosts.
 
-I hope this blog post can be helpful to update your knowledge base to see how to use the domain mode in the most current WildFly release. For convenience, I have put the `host.xml` of the `primary` host and the `host-secondary.xml` of the `secondary` host here for reference:
-
-* https://gist.github.com/liweinan/6cca8f88203e5aa76d3c1516d1758421[WildFly Domain Mode Configuration Files]
+I hope this blog post can be helpful to update your knowledge base to see how to use the domain mode in the most current WildFly release. For convenience, I have put the `host.xml` of the `primary` host and the `host-secondary.xml` of the `secondary` host online for referencefootnote:[https://gist.github.com/liweinan/6cca8f88203e5aa76d3c1516d1758421[WildFly Domain Mode Configuration Files]].
 
 === References
